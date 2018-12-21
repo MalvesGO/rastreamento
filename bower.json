@@ -1,0 +1,17 @@
+{
+  "name": "track",
+  "authors": [
+    "Marcelo Alves <marceloalves_ac@hotmail.com>"
+  ],
+  "description": "",
+  "main": "",
+  "license": "MIT",
+  "homepage": "",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ]
+}
