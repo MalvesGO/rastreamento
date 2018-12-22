@@ -14,12 +14,32 @@
 
 <body>
 
+    <nav class="navbar navbar-expand-lg navbar-light bg-light">
+        <a class="navbar-brand" href="#">Navbar</a>
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false"
+            aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav">
+                <li class="nav-item active">
+                    <a class="nav-link" href="#">Home
+                        <span class="sr-only">(current)</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="calendar.html">Calendário</a>
+                </li>
+            </ul>
+        </div>
+    </nav>
+
     <h1 class="text-center">Rastreamento</h1>
 
     <div class="container">
 
         <button id="api" style="margin-left: 10px" class="btn btn-primary float-md-right">Solicitar Rota</button>
-        <button class="btn btn-primary float-md-right">Mostrar Rota</button>
+        <button id="btnEndereco" class="btn btn-primary float-md-right">Mostrar Rota</button>
 
     </div>
 
@@ -48,49 +68,99 @@
 
                     // Armazena no LocalStorage
                     localStorage.setItem('rota', JSON.stringify(rota));
-                    alert(JSON.stringify(rota))
+                    alert(rota[0].latitude)
                 });
         });
 
+        var geocoder;
+        var map;
+        var marker;
+        var directionsService = new google.maps.DirectionsService();
 
 
         // Obtém do LocalStorage
-        var objSalvo = localStorage.getItem('rota');
+        var objSalvo = JSON.parse(localStorage.getItem('rota'));
 
-        console.log('localStorage data: ', JSON.parse(objSalvo));
+        console.log('localStorage data: ', objSalvo);
 
-    </script>
+        var MapPoints = objSalvo;
 
-    <script>
-        function initMap() {
-            var mapDiv = document.getElementById('map');
-            var map = new google.maps.Map(mapDiv, {
-                center: {
-                    lat: -16.6799,
-                    lng: -49.255
-                },
-                zoom: 8
+        console.log('map', MapPoints)
+
+        var MY_MAPTYPE_ID = 'custom_style';
+        var directionsDisplay;
+        var directionsService = new google.maps.DirectionsService();
+        var map;
+
+        function initialize() {
+            directionsDisplay = new google.maps.DirectionsRenderer({
+                suppressMarkers: true
             });
+
+            if (jQuery('#map').length > 0) {
+
+                var locations = MapPoints;
+
+                map = new google.maps.Map(document.getElementById('map'), {
+                    mapTypeId: google.maps.MapTypeId.ROADMAP,
+                    scrollwheel: false
+                });
+                directionsDisplay.setMap(map);
+
+                var infowindow = new google.maps.InfoWindow();
+                var flightPlanCoordinates = [];
+                var bounds = new google.maps.LatLngBounds();
+
+                for (i = 0; i < locations.length; i++) {
+                    marker = new google.maps.Marker({
+                        position: new google.maps.LatLng(locations[i].latitude, locations[i].longitude),
+                        map: map
+                    });
+                    flightPlanCoordinates.push(marker.getPosition());
+                    bounds.extend(marker.position);
+
+                    google.maps.event.addListener(marker, 'click', (function (marker, i) {
+                        return function () {
+                            infowindow.setContent(locations[i]['title']);
+                            infowindow.open(map, marker);
+                        }
+                    })(marker, i));
+                }
+
+                map.fitBounds(bounds);
+
+                // directions service configuration
+                var start = flightPlanCoordinates[0];
+                var end = flightPlanCoordinates[flightPlanCoordinates.length - 1];
+                var waypts = [];
+                for (var i = 1; i < flightPlanCoordinates.length - 1; i++) {
+                    waypts.push({
+                        location: flightPlanCoordinates[i],
+                        stopover: true
+                    });
+                }
+                calcRoute(start, end, waypts);
+            }
         }
 
-        var directionsDisplay = new google.maps.DirectionsRenderer();
+        function calcRoute(start, end, waypts) {
+            var request = {
+                origin: start,
+                destination: end,
+                waypoints: waypts,
+                optimizeWaypoints: true,
+                travelMode: google.maps.TravelMode.DRIVING
+            };
+            directionsService.route(request, function (response, status) {
+                if (status == google.maps.DirectionsStatus.OK) {
+                    directionsDisplay.setDirections(response);
+                    var route = response.routes[0];
+                }
+            });
+        }
+        google.maps.event.addDomListener(window, 'load', initialize);
 
-        var request = {
-            origin: $("#txtEndereco").val(),
-            destination: marker.position,
-            travelMode: google.maps.DirectionsTravelMode.DRIVING
-        };
 
-        directionsService.route(request, function (response, status) {
-            if (status == google.maps.DirectionsStatus.OK) {
-                directionsDisplay.setDirections(response);
-                directionsDisplay.setMap(map);
-            }
-        });
-
-        $(document).ready(function () {
-            initMap();
-        })
 
     </script>
 
