@@ -68,24 +68,15 @@
 
                     // Armazena no LocalStorage
                     localStorage.setItem('rota', JSON.stringify(rota));
-                    alert(rota[0].latitude)
                 });
         });
-
-        var geocoder;
-        var map;
-        var marker;
-        var directionsService = new google.maps.DirectionsService();
-
 
         // Obtém do LocalStorage
         var objSalvo = JSON.parse(localStorage.getItem('rota'));
 
-        console.log('localStorage data: ', objSalvo);
-
         var MapPoints = objSalvo;
 
-        console.log('map', MapPoints)
+        console.log('Posições do Mapa', MapPoints)
 
         var MY_MAPTYPE_ID = 'custom_style';
         var directionsDisplay;
